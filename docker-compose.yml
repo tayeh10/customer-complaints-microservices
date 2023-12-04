@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  complaints-system-craft-mock:
+    build:
+      context: ./complaints-system-craft-mock
+    ports:
+      - "8081:8081"
+
+  complaint-service:
+    build:
+      context: ./complaint-service
+    environment:
+      - USER_SERVICE_URL=http://host.docker.internal:8081/users/
+      - PURCHASE_SERVICE_URL=http://host.docker.internal:8081/purchases/
+    ports:
+      - "8082:8082"
+    depends_on:
+      - complaints-system-craft-mock
