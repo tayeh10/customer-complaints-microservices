@@ -52,7 +52,7 @@ It's also maps port 8082 of the complaint-service service container to port 8082
 Make sure both ports: 8081 and 8082 on the host are not already being in use.
 
 > ℹ️ **_NOTE_**
-> The project use in memory db H2 which being defined of complaint-service service. So each run of the service need to test the flows with new api's run and new data.
+> The project use in memory db H2 which being defined on complaint-service service. So each run of the service need to test the flows with new api's run and new data.
 > I wanted to do it scalable using Spring Cloud Eureka Server, but I encountered problem when running on docker.
 > Docker returned connection refused error when assign clients to eureka server in the docker localhost.
 > In my local machine it's working fine.
