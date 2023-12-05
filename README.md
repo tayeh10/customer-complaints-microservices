@@ -52,12 +52,14 @@ It's also maps port 8082 of the complaint-service service container to port 8082
 Make sure both ports: 8081 and 8082 on the host are not already being in use.
 
 > ℹ️ **_NOTE_**
-> The project use in memory db H2 which being defined on complaint-service service. So each run of the service need to test the flows with new api's run and new data.
+> The project use in memory db H2 which being defined on complaint-service service. So each run of the service need to test the flows with new API's run and new data.
 > I wanted to do it scalable using Spring Cloud Eureka Server, but I encountered problem when running on docker.
 > Docker returned connection refused error when assign clients to eureka server in the docker localhost.
 > In my local machine it's working fine.
-> So to avoid these failure on docker I commented the lines in pom.xml and application.properties of the service complaint-service.
-> The project tested fine using docker when deploy with docker compose.
+> So due to time limit and to avoid these failure on docker for Eureka Clients connection to Eureka server I commented the lines in pom.xml and application.properties of the service complaint-service.
+> I also added config server technique so properties can be centralized in github. But again due to the same issue in docker I exclude it from docker compose.
+> To summarize I exclude from docker compose yaml file the 3 modules(api-gateway, config-server and service-registry) due to the docker eureka server connection issue.
+> The project tested fine using docker when deploy with docker compose for the two services: complaints-system-craft-mock and complaint-service.
 
 ## Deploy with docker compose
 
