@@ -17,6 +17,9 @@ Project structure:
 ├── complaint-service
 │   └── Dockerfile
 │   ...
+├── complaints-system-craft-mock
+│   └── Dockerfile
+│   ...
 ├── config-server
 │   └── Dockerfile
 ├── docker-compose.yaml
