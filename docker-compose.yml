@@ -7,23 +7,6 @@ services:
     ports:
       - "8081:8081"
 
-  service-registry:
-    build:
-      context: ./service-registry
-    ports:
-      - "8761:8761"
-
-  api-gateway:
-    build:
-      context: ./api-gateway
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA.INSTANCE.CLIENT.SERVERURL.DEFAULTZONE=http://host.docker.internal:8761/eureka/
-    ports:
-      - "9191:9191"
-    depends_on:
-      - service-registry
-
   complaint-service:
     build:
       context: ./complaint-service
