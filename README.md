@@ -22,10 +22,12 @@ Project structure:
 │   ...
 ├── config-server
 │   └── Dockerfile
+│   ...
 ├── docker-compose.yaml
 ├── README.md
 ├── service-registry
 │   └── Dockerfile
+│   ...
 └──
 ```
 
