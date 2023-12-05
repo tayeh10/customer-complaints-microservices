@@ -4,7 +4,7 @@
 
 You can open this project in the Dev Environments feature of Docker Desktop version 4.12 or later.
 
-[Open in Docker Dev Environments <img src="../open_in_new.svg" alt="Open in Docker Dev Environments" align="top"/>](https://open.docker.com/dashboard/dev-envs?url=https://github.com/tayeh10/customer-complaints-microservices)
+[Open in Docker Dev Environments <img src="./images/open_in_new.svg" alt="Open in Docker Dev Environments" align="top"/>](https://open.docker.com/dashboard/dev-envs?url=https://github.com/tayeh10/customer-complaints-microservices)
 
 ### Spring backend and H2 in memory database
 
@@ -61,13 +61,42 @@ Make sure both ports: 8081 and 8082 on the host are not already being in use.
 
 ## Deploy with docker compose
 
+> ℹ️ **_NOTE_**
+> Before deploy with docker compose need to run mvn install for complaint-service so the jar complaint-service-0.0.1-SNAPSHOT.jar will be created under target directory.
+
 ```
 Go to the directory where is the file docker_compose.yaml and run the command
-$ docker compose up -d
-time="2023-12-04T02:17:29+02:00" level=warning msg="Found orphan containers ([customer-complaints-microservices-api-gateway-1 customer-complaints-microservices-service-registry-1 customer-complaints-microservices-config-server-1 customer-complaints-microservices-complaint-system-craft-mock-1]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+$ docker-compose up --build -d
+[+] Building 1.3s (13/13) FINISHED
+ => [complaints-system-craft-mock internal] load build definition from Dockerfile                                                                                                                           0.1s
+ => => transferring dockerfile: 224B                                                                                                                                                                        0.0s
+ => [complaints-system-craft-mock internal] load .dockerignore                                                                                                                                              0.1s
+ => => transferring context: 2B                                                                                                                                                                             0.0s
+ => [complaint-service internal] load metadata for docker.io/library/eclipse-temurin:17                                                                                                                     0.0s
+ => [complaint-service 1/3] FROM docker.io/library/eclipse-temurin:17                                                                                                                                       0.0s
+ => [complaints-system-craft-mock internal] load build context                                                                                                                                              0.0s
+ => => transferring context: 56B                                                                                                                                                                            0.0s
+ => CACHED [complaint-service 2/3] WORKDIR /app                                                                                                                                                             0.0s
+ => CACHED [complaints-system-craft-mock 3/3] COPY complaints-system-craft-mock.jar /app/complaints-system-craft-mock.jar                                                                                   0.0s
+ => [complaints-system-craft-mock] exporting to image                                                                                                                                                       0.0s
+ => => exporting layers                                                                                                                                                                                     0.0s
+ => => writing image sha256:b341ec458795b21089f26ee95873ef7459694be9a654bcc38688fcd7e5363750                                                                                                                0.0s
+ => => naming to docker.io/library/customer-complaints-microservices-complaints-system-craft-mock                                                                                                           0.0s
+ => [complaint-service internal] load build definition from Dockerfile                                                                                                                                      0.1s
+ => => transferring dockerfile: 213B                                                                                                                                                                        0.0s
+ => [complaint-service internal] load .dockerignore                                                                                                                                                         0.1s
+ => => transferring context: 2B                                                                                                                                                                             0.0s
+ => [complaint-service internal] load build context                                                                                                                                                         0.0s
+ => => transferring context: 93B                                                                                                                                                                            0.0s
+ => CACHED [complaint-service 3/3] COPY target/complaint-service-0.0.1-SNAPSHOT.jar /app/complaint-service.jar                                                                                              0.0s
+ => [complaint-service] exporting to image                                                                                                                                                                  0.0s
+ => => exporting layers                                                                                                                                                                                     0.0s
+ => => writing image sha256:9cf4ec354e8d9a775be546eb801f4b00d4f832e499f7029e1790dab69ed6c6f8                                                                                                                0.0s
+ => => naming to docker.io/library/customer-complaints-microservices-complaint-service                                                                                                                      0.0s
+time="2023-12-04T12:01:10+02:00" level=warning msg="Found orphan containers ([customer-complaints-microservices-api-gateway-1 customer-complaints-microservices-service-registry-1 customer-complaints-microservices-config-server-1 customer-complaints-microservices-complaint-system-craft-mock-1]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
 [+] Running 2/2
- ✔ Container customer-complaints-microservices-complaints-system-craft-mock-1  Started                                                                                                                      1.2s
- ✔ Container customer-complaints-microservices-complaint-service-1             Started
+ ✔ Container customer-complaints-microservices-complaints-system-craft-mock-1  Started                                                                                                                      1.4s
+ ✔ Container customer-complaints-microservices-complaint-service-1             Started           Started
 ```
 
 ## Expected result
@@ -91,12 +120,12 @@ The mock expose two API's:
 1. Get User By Id:
     http://localhost:8081/users/a93adc57-4d59-4a9d-85c6-b5d48d99101d
     You should get below result:
-    ![page](./screenshots/mock_get_user.png)
+    ![page](images/mock_get_user.png)
 
 2. Get Purchase By Id:
    http://localhost:8081/purchases/f256c996-6dcb-40cf-8dce-a11fa9bcab6b
    You should get below result:
-   ![page](./screenshots/mock_get_purchase.png)
+   ![page](images/mock_get_purchase.png)
 
 The second service which I developed using Spring Boot "complaint-service" expose two API's:
 
@@ -123,7 +152,7 @@ The second service which I developed using Spring Boot "complaint-service" expos
     "purchaseId": "f256c996-6dcb-40cf-8dce-a11fa9bcab6b"
     }
 
-![page](./screenshots/complaint_service_create_complaint.png)
+![page](images/complaint_service_create_complaint.png)
 
 2. Get complaint - Get:
 
@@ -158,7 +187,7 @@ The second service which I developed using Spring Boot "complaint-service" expos
     }
 }
 
-![page](./screenshots/complaint_service_get_complaint.png)
+![page](images/complaint_service_get_complaint.png)
 
 Stop and remove the containers
 ```
