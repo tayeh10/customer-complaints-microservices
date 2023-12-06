@@ -94,15 +94,15 @@ When deploying the application:
 
 docker compose maps ports:
 
-`8761` of the `service-registry` service container to port `8761` of the host as specified in the file
+`8761` of the `service-registry` service container to port `8761` of the host as specified in the file.
 
-`8888` of the `config-server` container to port `8888` of the host as specified in the file
+`8888` of the `config-server` container to port `8888` of the host as specified in the file.
 
-`9191` of the `api-gateway` container to port `9191` of the host as specified in the file
+`9191` of the `api-gateway` container to port `9191` of the host as specified in the file.
 
-`8081` of the `complaints-system-craft-mock` container to port `8081` of the host as specified in the file
+`8081` of the `complaints-system-craft-mock` container to port `8081` of the host as specified in the file.
 
-`8082` of the `complaint-service` container to port `8082` of the host as specified in the file
+`8082` of the `complaint-service` container to port `8082` of the host as specified in the file.
 
 Please make sure that ports: `8761, 8888, 9191, 8081 and 8082` on the host are not already being in use.
 
@@ -129,8 +129,11 @@ Please make sure that ports: `8761, 8888, 9191, 8081 and 8082` on the host are n
 > Before deploy with docker compose need to run mvn clean install for all the services except the mock service `complaints-system-craft-mock` so the jars:
 > 
 > `service-registry-0.0.1-SNAPSHOT.jar`
+> 
 > `config-server-0.0.1-SNAPSHOT.jar`
+> 
 > `api-gateway-0.0.1-SNAPSHOT.jar`
+> 
 > `complaint-service-0.0.1-SNAPSHOT.jar`
 > 
 > will be created under target directories in each module.
@@ -206,7 +209,7 @@ The second service which I developed using Spring Boot "complaint-service" expos
 
     http://localhost:8082/api/complaints
 
-
+    ```
     Example Input:
     {
     "userId":"a93adc57-4d59-4a9d-85c6-b5d48d99101d",
@@ -214,8 +217,9 @@ The second service which I developed using Spring Boot "complaint-service" expos
     "complaint":"I made a purchase and the item hasn’t shipped. It’s been over a week. Please help!",
     "purchaseId":"f256c996-6dcb-40cf-8dce-a11fa9bcab6b"
     }
+    ```
 
-
+    ```
     Example Output:
     {
     "id": "27a41053-4e5a-466e-a4a1-50d4e2e61427",
@@ -224,6 +228,8 @@ The second service which I developed using Spring Boot "complaint-service" expos
     "complaint": "I made a purchase and the item hasn’t shipped. It’s been over a week. Please help!",
     "purchaseId": "f256c996-6dcb-40cf-8dce-a11fa9bcab6b"
     }
+    ```
+   
 
 ![page](images/complaint_service_create_complaint.png)
 
@@ -240,7 +246,7 @@ The second service which I developed using Spring Boot "complaint-service" expos
 
     http://localhost:8082/api/complaints/2f523955-a542-4123-bed1-7ff82f50b1e6
 
-
+```
     Example Output:
     {
     "complaint": {
@@ -268,6 +274,7 @@ The second service which I developed using Spring Boot "complaint-service" expos
         "purchaseDate": "2020-11-21T00:00:00.000+00:00"
     }
 }
+```
 
 ![page](images/complaint_service_get_complaint.png)
 
@@ -279,6 +286,11 @@ The second service which I developed using Spring Boot "complaint-service" expos
 >
 > ![page](images/complaint_service_api_gateway_create_complaint.png)
 >
+
+You can also check the eureka server registered services by opening the link:
+http://localhost:8761/
+
+![page](images/eureka_server.png)
 
 Stop and remove the containers
 ```
