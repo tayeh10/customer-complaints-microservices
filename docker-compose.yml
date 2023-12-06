@@ -1,6 +1,34 @@
 version: '3.8'
 
 services:
+  service-registry:
+    build:
+      context: ./service-registry
+    ports:
+      - "8761:8761"
+  config-server:
+    build:
+      context: ./config-server
+    ports:
+      - "8888:8888"
+    links:
+      - service-registry
+    depends_on:
+      - service-registry
+    environment:
+      eureka.client.serviceUrl.defaultZone: http://service-registry:8761/eureka
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "9191:9191"
+    links:
+      - service-registry
+    depends_on:
+      - service-registry
+    environment:
+      eureka.client.serviceUrl.defaultZone: http://service-registry:8761/eureka
+
   complaints-system-craft-mock:
     build:
       context: ./complaints-system-craft-mock
@@ -11,9 +39,16 @@ services:
     build:
       context: ./complaint-service
     environment:
-      - USER_SERVICE_URL=http://host.docker.internal:8081/users/
-      - PURCHASE_SERVICE_URL=http://host.docker.internal:8081/purchases/
+      user.service.url: http://host.docker.internal:8081/users/
+      purchase.service.url: http://host.docker.internal:8081/purchases/
+      eureka.client.serviceUrl.defaultZone: http://service-registry:8761/eureka
     ports:
       - "8082:8082"
+    links:
+      - service-registry
+      - config-server
+      - complaints-system-craft-mock
     depends_on:
+      - service-registry
+      - config-server
       - complaints-system-craft-mock

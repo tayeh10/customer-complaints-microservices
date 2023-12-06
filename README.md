@@ -33,7 +33,37 @@ Project structure:
 
 [_docker_compose.yaml_](docker_compose.yaml)
 ```
+version: '3.8'
+
 services:
+  service-registry:
+    build:
+      context: ./service-registry
+    ports:
+      - "8761:8761"
+  config-server:
+    build:
+      context: ./config-server
+    ports:
+      - "8888:8888"
+    links:
+      - service-registry
+    depends_on:
+      - service-registry
+    environment:
+      eureka.client.serviceUrl.defaultZone: http://service-registry:8761/eureka
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "9191:9191"
+    links:
+      - service-registry
+    depends_on:
+      - service-registry
+    environment:
+      eureka.client.serviceUrl.defaultZone: http://service-registry:8761/eureka
+
   complaints-system-craft-mock:
     build:
       context: ./complaints-system-craft-mock
@@ -44,76 +74,106 @@ services:
     build:
       context: ./complaint-service
     environment:
-      - USER_SERVICE_URL=http://host.docker.internal:8081/users/
-      - PURCHASE_SERVICE_URL=http://host.docker.internal:8081/purchases/
+      user.service.url: http://host.docker.internal:8081/users/
+      purchase.service.url: http://host.docker.internal:8081/purchases/
+      eureka.client.serviceUrl.defaultZone: http://service-registry:8761/eureka
     ports:
       - "8082:8082"
-    depends_on:
+    links:
+      - service-registry
+      - config-server
       - complaints-system-craft-mock
+    depends_on:
+      - service-registry
+      - config-server
+      - complaints-system-craft-mock
+
 ```
-The compose file defines an application with two services `complaints-system-craft-mock` and `complaint-service`.
-When deploying the application, docker compose maps port 8081 of the complaints-system-craft-mock service container to port 8081 of the host as specified in the file.
+The compose file defines an application with five services: `service-registry`, `config-server`, `api-gateway`, `complaints-system-craft-mock` and `complaint-service`.
+When deploying the application:
+
+docker compose maps port `8761` of the `service-registry` service container to port `8761` of the host as specified in the file,
+
+maps port `8888` of the `config-server` container to port `8888` of the host as specified in the file,
+
+maps port `9191` of the `api-gateway` container to port `9191` of the host as specified in the file,
+
+maps port `8081` of the `complaints-system-craft-mock` container to port `8081` of the host as specified in the file
+
+and maps port `8082` of the `complaint-service` container to port `8082` of the host as specified in the file,
 It's also maps port 8082 of the complaint-service service container to port 8082 of the host as specified in the file.
-Make sure both ports: 8081 and 8082 on the host are not already being in use.
+
+Please make sure that ports: `8761, 8888, 9191, 8081 and 8082` on the host are not already being in use.
 
 > ℹ️ **_NOTE_**
+> 
 > The project use in memory db H2 which being defined on complaint-service service. So each run of the service need to test the flows with new API's run and new data.
-> I wanted to do it scalable using Spring Cloud Eureka Server, but I encountered problem when running on docker.
-> Docker returned connection refused error when assign clients to eureka server in the docker localhost.
-> In my local machine it's working fine.
-> So due to time limit and to avoid these failure on docker for Eureka Clients connection to Eureka server I commented the lines in pom.xml and application.properties of the service complaint-service.
-> I also added config server technique so properties can be centralized in github. But again due to the same issue in docker I exclude it from docker compose.
-> To summarize I exclude from docker compose yaml file the 3 modules(api-gateway, config-server and service-registry) due to the docker eureka server connection issue.
-> The project tested fine using docker when deploy with docker compose for the two services: complaints-system-craft-mock and complaint-service.
+> 
+> The project contains one eureka server service and 3 eureka client services.
+> 
+> `service-registry` - is the eureka server service.
+> 
+> `config-server` - is the eureka client service which bring the application properties from github repo.
+> 
+> `api-gateway` - is the eureka client service which scale the application to map the call to the up services in case running multi instances of `complaint-service` service.
+> 
+> `complaints-system-craft-mock` - is the mock service which attached to the task.
+> 
+> `complaint-service` - is the eureka client service handle complaints services and expose the two API's: create complaint and get complaint by id.
+> 
 
 ## Deploy with docker compose
 
 > ℹ️ **_NOTE_**
-> Before deploy with docker compose need to run mvn install for complaint-service so the jar complaint-service-0.0.1-SNAPSHOT.jar will be created under target directory.
+> Before deploy with docker compose need to run mvn clean install for all the services except the mock service `complaints-system-craft-mock` so the jars:
+> 
+> service-registry-0.0.1-SNAPSHOT.jar, config-server-0.0.1-SNAPSHOT.jar, api-gateway-0.0.1-SNAPSHOT.jar and complaint-service-0.0.1-SNAPSHOT.jar will be created under target directories in each module.
 
 ```
 Go to the directory where is the file docker_compose.yaml and run the command
 $ docker-compose up --build -d
-[+] Building 1.3s (13/13) FINISHED
+[+] Building 0.6s (13/13)
+[+] Building 2.3s (28/28) FINISHED
+ => [service-registry internal] load .dockerignore                                                                                                                                                          0.0s
+ => => transferring context: 2B                                                                                                                                                                             0.0s
+ => [service-registry internal] load build definition from Dockerfile                                                                                                                                       0.1s
+ => => transferring dockerfile: 210B                                                                                                                                                                        0.0s
  => [complaints-system-craft-mock internal] load build definition from Dockerfile                                                                                                                           0.1s
  => => transferring dockerfile: 224B                                                                                                                                                                        0.0s
  => [complaints-system-craft-mock internal] load .dockerignore                                                                                                                                              0.1s
  => => transferring context: 2B                                                                                                                                                                             0.0s
  => [complaint-service internal] load metadata for docker.io/library/eclipse-temurin:17                                                                                                                     0.0s
  => [complaint-service 1/3] FROM docker.io/library/eclipse-temurin:17                                                                                                                                       0.0s
- => [complaints-system-craft-mock internal] load build context                                                                                                                                              0.0s
+ => [service-registry internal] load build context                                                                                                                                                          0.1s
+ => => transferring context: 92B                                                                                                                                                                            0.0s
+ => [complaints-system-craft-mock internal] load build context                                                                                                                                              0.1s
  => => transferring context: 56B                                                                                                                                                                            0.0s
  => CACHED [complaint-service 2/3] WORKDIR /app                                                                                                                                                             0.0s
- => CACHED [complaints-system-craft-mock 3/3] COPY complaints-system-craft-mock.jar /app/complaints-system-craft-mock.jar                                                                                   0.0s
- => [complaints-system-craft-mock] exporting to image                                                                                                                                                       0.0s
- => => exporting layers                                                                                                                                                                                     0.0s
- => => writing image sha256:b341ec458795b21089f26ee95873ef7459694be9a654bcc38688fcd7e5363750                                                                                                                0.0s
- => => naming to docker.io/library/customer-complaints-microservices-complaints-system-craft-mock                                                                                                           0.0s
- => [complaint-service internal] load build definition from Dockerfile                                                                                                                                      0.1s
- => => transferring dockerfile: 213B                                                                                                                                                                        0.0s
- => [complaint-service internal] load .dockerignore                                                                                                                                                         0.1s
- => => transferring context: 2B                                                                                                                                                                             0.0s
- => [complaint-service internal] load build context                                                                                                                                                         0.0s
- => => transferring context: 93B                                                                                                                                                                            0.0s
- => CACHED [complaint-service 3/3] COPY target/complaint-service-0.0.1-SNAPSHOT.jar /app/complaint-service.jar                                                                                              0.0s
- => [complaint-service] exporting to image                                                                                                                                                                  0.0s
- => => exporting layers                                                                                                                                                                                     0.0s
- => => writing image sha256:9cf4ec354e8d9a775be546eb801f4b00d4f832e499f7029e1790dab69ed6c6f8                                                                                                                0.0s
- => => naming to docker.io/library/customer-complaints-microservices-complaint-service                                                                                                                      0.0s
-time="2023-12-04T12:01:10+02:00" level=warning msg="Found orphan containers ([customer-complaints-microservices-api-gateway-1 customer-complaints-microservices-service-registry-1 customer-complaints-microservices-config-server-1 customer-complaints-microservices-complaint-system-craft-mock-1]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
-[+] Running 2/2
- ✔ Container customer-complaints-microservices-complaints-system-craft-mock-1  Started                                                                                                                      1.4s
- ✔ Container customer-complaints-microservices-complaint-service-1             Started           Started
+ => CACHED [service-registry 3/3] COPY target/service-registry-0.0.1-SNAPSHOT.jar /app/service-registry.jar                                                                                                 0.0s
+ => [service-registry] exporting to image                                                                                                                                                                   0.0s
+ => => exporting layers
+...
+time="2023-12-04T12:19:00+02:00" level=warning msg="Found orphan containers ([customer-complaints-microservices-complaint-system-craft-mock-1]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+[+] Running 5/5
+ ✔ Container customer-complaints-microservices-complaints-system-craft-mock-1  Started                                                                                                                      1.9s
+ ✔ Container customer-complaints-microservices-service-registry-1              Started                                                                                                                      1.8s
+ ✔ Container customer-complaints-microservices-api-gateway-1                   Started                                                                                                                      3.7s
+ ✔ Container customer-complaints-microservices-config-server-1                 Started                                                                                                                      4.2s
+ ✔ Container customer-complaints-microservices-complaint-service-1             Started
+
 ```
 
 ## Expected result
 
 Listing containers must show three containers running and the port mapping as below:
 ```
-PS C:\Users\TOSHIBA> docker ps
-CONTAINER ID   IMAGE                                                            COMMAND                  CREATED       STATUS         PORTS                    NAMES
-d388940188c8   customer-complaints-microservices-complaint-service              "java -jar complaint…"   3 hours ago   Up 2 minutes   0.0.0.0:8082->8082/tcp   customer-complaints-microservices-complaint-service-1
-6f6bfb5f4bc6   customer-complaints-microservices-complaints-system-craft-mock   "java -jar complaint…"   6 hours ago   Up 2 minutes   0.0.0.0:8081->8081/tcp   customer-complaints-microservices-complaints-system-craft-mock-1
+PS C:\Spring Boot Course Projects\intuit\customer-complaints-microservices> docker ps
+CONTAINER ID   IMAGE                                                            COMMAND                  CREATED             STATUS         PORTS                    NAMES
+e0d0536dbdf5   customer-complaints-microservices-complaint-service              "java -jar complaint…"   38 minutes ago      Up 3 minutes   0.0.0.0:8082->8082/tcp   customer-complaints-microservices-complaint-service-1
+4b5488acd444   customer-complaints-microservices-api-gateway                    "java -jar api-gatew…"   38 minutes ago      Up 3 minutes   0.0.0.0:9191->9191/tcp   customer-complaints-microservices-api-gateway-1
+2bb7d1ae2b52   customer-complaints-microservices-config-server                  "java -jar config-se…"   38 minutes ago      Up 3 minutes   0.0.0.0:8888->8888/tcp   customer-complaints-microservices-config-server-1
+ef963111cc37   customer-complaints-microservices-service-registry               "java -jar service-r…"   38 minutes ago      Up 3 minutes   0.0.0.0:8761->8761/tcp   customer-complaints-microservices-service-registry-1
+0ef53249d060   customer-complaints-microservices-complaints-system-craft-mock   "java -jar complaint…"   About an hour ago   Up 3 minutes   0.0.0.0:8081->8081/tcp   customer-complaints-microservices-complaints-system-craft-mock-1
 ```
 
 After the application starts, need to test first that mock service is working fine.
@@ -161,6 +221,15 @@ The second service which I developed using Spring Boot "complaint-service" expos
 
 ![page](images/complaint_service_create_complaint.png)
 
+> ℹ️ **_NOTE_**
+>
+> We can also run the service on the api-gateway port:
+> 
+>  http://localhost:9191/api/complaints
+> 
+> ![page](images/complaint_service_api_gateway_create_complaint.png)
+>
+
 2. Get complaint - Get:
 
     http://localhost:8082/api/complaints/2f523955-a542-4123-bed1-7ff82f50b1e6
@@ -196,11 +265,23 @@ The second service which I developed using Spring Boot "complaint-service" expos
 
 ![page](images/complaint_service_get_complaint.png)
 
+> ℹ️ **_NOTE_**
+>
+> We can also run the service on the api-gateway port:
+>
+>  http://localhost:9191/api/complaints/ac6f1f69-4a4f-46b7-94a4-c91301a44543
+>
+> ![page](images/complaint_service_api_gateway_create_complaint.png)
+>
+
 Stop and remove the containers
 ```
 $ docker compose down
-[+] Running 3/3
- ✔ Container customer-complaints-microservices-complaint-service-1             Removed                                                                                                                      2.8s
- ✔ Container customer-complaints-microservices-complaints-system-craft-mock-1  Removed                                                                                                                      0.9s
+[+] Running 6/6
+ ✔ Container customer-complaints-microservices-api-gateway-1                   Removed                                                                                                                                                 5.8s
+ ✔ Container customer-complaints-microservices-complaint-service-1             Removed                                                                                                                                                 6.0s
+ ✔ Container customer-complaints-microservices-config-server-1                 Removed                                                                                                                                                 3.7s
+ ✔ Container customer-complaints-microservices-complaints-system-craft-mock-1  Removed                                                                                                                                                 0.9s
+ ✔ Container customer-complaints-microservices-service-registry-1              Removed                                                                                                                                                 0.8s
  ✔ Network customer-complaints-microservices_default                           Removed
 ```
